@@ -2,7 +2,6 @@ import { motion } from 'motion/react'
 import { site } from '@/data/site'
 import { ArrowDownIcon, GithubIcon, MailIcon } from '@/components/icons'
 import { Magnetic } from '@/components/core/magnetic'
-import { Spotlight } from '@/components/core/spotlight'
 import Toolbar from '@/components/Toolbar'
 
 /**
@@ -37,7 +36,7 @@ function RollText({ text, className = '', rollClassName = 'text-stroke-white' }:
 
 export default function Hero() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden pt-24 pb-36">
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden pt-24 pb-28">
       {/* backdrop */}
       <div className="bg-grid absolute inset-0" aria-hidden="true" />
       <div className="animate-pulse-glow absolute -top-40 left-1/2 h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-accent/20 blur-[160px]" aria-hidden="true" />
@@ -128,36 +127,7 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* photo — pinned to the bottom */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.9, ease: [0.21, 0.65, 0.32, 0.99] }}
-        className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2"
-      >
-        <Magnetic intensity={0.22} springOptions={{ bounce: 0.1 }} actionArea="global" range={240}>
-          <a href="#about" data-cursor="photo" aria-label={`More about ${site.firstName}`} className="relative block">
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative"
-            >
-              <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-accent/30 via-transparent to-indigo-500/20 opacity-60 blur-2xl" aria-hidden="true" />
-              <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-neutral-900 shadow-2xl shadow-black/60">
-                <img
-                  src={site.photo}
-                  alt={`Portrait of ${site.firstName}`}
-                  fetchPriority="high"
-                  className="aspect-[4/5] w-32 object-cover grayscale transition-all duration-700 hover:scale-105 hover:grayscale-0 sm:w-36"
-                />
-                <Spotlight className="absolute inset-0" size={200} springOptions={{ stiffness: 200, damping: 20 }} />
-              </div>
-            </motion.div>
-          </a>
-        </Magnetic>
-      </motion.div>
-
-      {/* toolbar dock — bottom-right so it never overlaps the centered photo */}
+      {/* toolbar dock — bottom-right */}
       <Toolbar />
 
       {/* scroll cue — bottom-left */}
