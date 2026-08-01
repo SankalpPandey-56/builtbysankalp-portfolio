@@ -82,19 +82,23 @@ export type EducationItem = {
   highlight: string
 }
 
+// ✏️ EDIT YOUR REAL YEARS HERE — the two lines below marked with ✏️ are placeholders.
+//   Class 10th  →  the `year: '✏️ 2022 — 2024'` line
+//   Class 12th  →  the `year: '✏️ 2024 — 2026'` line
+// Just swap in your real years, e.g. '2019 — 2021'. Nothing else needs changing.
 export const education: EducationItem[] = [
   {
     stage: 'Class 10th',
     detail: '90%',
     school: 'Tender Hearts School',
-    year: '2022 — 2024',
+    year: '✏️ 2022 — 2024',
     highlight: 'Secondary School',
   },
   {
     stage: 'Class 12th',
     detail: '77%',
     school: 'Tender Hearts School',
-    year: '2024 — 2026',
+    year: '✏️ 2024 — 2026',
     highlight: 'Senior Secondary',
   },
   {
@@ -104,6 +108,19 @@ export const education: EducationItem[] = [
     year: '2026 — Present',
     highlight: 'Undergraduate · First Year',
   },
+]
+
+export const learning = [
+  'HTML',
+  'CSS',
+  'JavaScript',
+  'Python',
+  'React',
+  'Tailwind CSS',
+  'Prompt Engineering',
+  'AI & LLMs',
+  'Node.js',
+  'Git & GitHub',
 ]
 
 export type Service = {

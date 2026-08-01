@@ -1,7 +1,26 @@
-import { useRef } from 'react'
-import { motion, useScroll, useSpring } from 'motion/react'
-import { education } from '@/data/site'
+import { useEffect, useRef, useState } from 'react'
+import { animate, motion, useInView, useScroll, useSpring } from 'motion/react'
+import { education, learning } from '@/data/site'
 import { GraduationCap } from 'lucide-react'
+import Marquee from './Marquee'
+
+function CountUp({ value }: { value: number }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, amount: 0.1 })
+  const [display, setDisplay] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const controls = animate(0, value, {
+      duration: 1.8,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    })
+    return () => controls.stop()
+  }, [inView, value])
+
+  return <span ref={ref}>{display}</span>
+}
 
 export default function Education() {
   const ref = useRef<HTMLDivElement>(null)
@@ -37,6 +56,7 @@ export default function Education() {
           <div className="space-y-12">
             {education.map((item, i) => {
               const left = i % 2 === 0
+              const pct = item.detail.endsWith('%') ? parseInt(item.detail, 10) : null
               return (
                 <div key={item.stage} className="relative grid gap-6 sm:grid-cols-2 sm:gap-0">
                   {/* node dot */}
@@ -59,11 +79,36 @@ export default function Education() {
                           <GraduationCap className="h-3.5 w-3.5 text-accent-soft" />
                           {item.year}
                         </span>
-                        <span className="font-display text-3xl font-bold text-white transition-colors group-hover:text-accent-soft">
-                          {item.detail}
-                        </span>
+                        {pct !== null ? (
+                          <span className="font-display text-4xl font-bold tabular-nums text-white sm:text-5xl">
+                            <span className="bg-gradient-to-r from-accent to-accent-soft bg-clip-text text-transparent">
+                              <CountUp value={pct} />
+                            </span>
+                            <span className="text-accent-soft">%</span>
+                          </span>
+                        ) : (
+                          <span className="font-display text-2xl font-bold text-white">
+                            <span className="bg-gradient-to-r from-accent to-accent-soft bg-clip-text text-transparent">
+                              {item.detail}
+                            </span>
+                          </span>
+                        )}
                       </div>
-                      <h3 className="mt-4 font-display text-xl font-bold text-white sm:text-2xl">{item.stage}</h3>
+
+                      {/* animated percentage bar */}
+                      {pct !== null && (
+                        <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            whileInView={{ width: `${pct}%` }}
+                            viewport={{ once: true, amount: 0.05 }}
+                            transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                            className="h-full rounded-full bg-gradient-to-r from-accent via-accent-soft to-white shadow-[0_0_16px_rgba(79,124,255,0.7)]"
+                          />
+                        </div>
+                      )}
+
+                      <h3 className="mt-5 font-display text-xl font-bold text-white sm:text-2xl">{item.stage}</h3>
                       <p className="mt-1 text-sm text-neutral-400">{item.school}</p>
                       <div className="mt-4 h-px w-full bg-gradient-to-r from-accent/40 to-transparent" />
                       <p className="mt-3 text-xs font-medium tracking-[0.25em] text-neutral-500 uppercase">
@@ -76,6 +121,14 @@ export default function Education() {
             })}
           </div>
         </div>
+      </div>
+
+      {/* subtle marquee of subjects */}
+      <div className="mt-20 border-y border-white/5 bg-white/[0.02]">
+        <p className="pt-8 text-center text-xs font-medium tracking-[0.4em] text-neutral-500 uppercase">
+          Currently learning
+        </p>
+        <Marquee small speed="70s" items={learning} />
       </div>
     </section>
   )
