@@ -1,5 +1,7 @@
+import { motion } from 'motion/react'
 import { site } from '@/data/site'
 import { ArrowUpRightIcon, GithubIcon, InstagramIcon, LinkedinIcon, MailIcon } from '@/components/icons'
+import { Spotlight } from '@/components/core/spotlight'
 
 const socials = [
   { label: 'Email Me', href: `mailto:${site.email}`, Icon: MailIcon },
@@ -45,7 +47,29 @@ export default function Contact() {
           Based in 📍 {site.location} · Available for remote work worldwide
         </p>
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 border-t border-white/10 pt-8 text-sm text-neutral-600 sm:flex-row sm:gap-8">
+        {/* photo — bottom of the site */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: [0.21, 0.65, 0.32, 0.99] }}
+          className="relative mt-12 inline-block"
+        >
+          <a href="#about" data-cursor="photo" aria-label={`More about ${site.firstName}`} className="group relative block">
+            <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-accent/25 to-indigo-500/15 opacity-60 blur-xl transition-opacity duration-500 group-hover:opacity-90" aria-hidden="true" />
+            <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-neutral-900 shadow-xl shadow-black/50">
+              <img
+                src={site.photo}
+                alt={`Portrait of ${site.firstName}`}
+                loading="lazy"
+                className="aspect-[4/5] w-28 object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0 sm:w-32"
+              />
+              <Spotlight className="absolute inset-0" size={180} springOptions={{ stiffness: 200, damping: 20 }} />
+            </div>
+          </a>
+        </motion.div>
+
+        <div className="mt-12 flex flex-col items-center justify-center gap-3 border-t border-white/10 pt-8 text-sm text-neutral-600 sm:flex-row sm:gap-8">
           <span>© 2026 {site.brand}</span>
           <span className="hidden h-1 w-1 rounded-full bg-neutral-700 sm:block" />
           <span>
