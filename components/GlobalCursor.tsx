@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import type { MutableRefObject, ReactNode } from 'react'
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react'
 import { Plus } from 'lucide-react'
@@ -9,6 +9,16 @@ type Mode = 'default' | 'link' | 'photo'
 interface Vec {
   x: number
   y: number
+}
+
+interface TrailDroplet {
+  id: number
+  x: number
+  y: number
+  dx: number
+  dy: number
+  size: number
+  life: number
 }
 
 /** Glassy water-bubble gradient shared by every droplet. */
@@ -25,11 +35,14 @@ function WaterBubble({
   phase = 0,
   className = '',
   children,
+  onFrame,
 }: {
   getTarget: () => Vec
   phase?: number
   className?: string
   children?: ReactNode
+  /** called every frame with the visible (spring) position + per-frame velocity */
+  onFrame?: (x: number, y: number, vx: number, vy: number) => void
 }) {
   const tx = useMotionValue(0)
   const ty = useMotionValue(0)
@@ -77,11 +90,14 @@ function WaterBubble({
       // idle liquid wobble
       wobble.set(1 + Math.sin((t - start) * 0.004 + phase) * 0.05)
 
+      // report the bubble's actual on-screen position and motion for trails
+      onFrame?.(x.get(), y.get(), dx, dy)
+
       raf = requestAnimationFrame(loop)
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [getTarget, phase, tx, ty, rawSX, rawSY, rawAngle, wobble])
+  }, [getTarget, phase, tx, ty, rawSX, rawSY, rawAngle, wobble, onFrame])
 
   return (
     <motion.div style={{ x, y }} className="pointer-events-none fixed left-0 top-0 z-[9999]">
@@ -95,6 +111,79 @@ function WaterBubble({
     </motion.div>
   )
 }
+
+const MAX_TRAIL = 38
+const TRAIL_THROTTLE_MS = 26
+
+type SpawnFn = (x: number, y: number, vx: number, vy: number) => void
+
+/**
+ * Isolated trail layer. It owns the droplet state, so spawning droplets
+ * (up to ~38×/sec while moving fast) only re-renders this small layer —
+ * never the whole cursor tree. The primary bubble's onFrame writes through
+ * a ref (spawnRef) so the WaterBubble effect dep stays referentially stable.
+ */
+const TrailLayer = memo(function TrailLayer({
+  spawnRef,
+}: {
+  spawnRef: MutableRefObject<SpawnFn | null>
+}) {
+  const [trail, setTrail] = useState<TrailDroplet[]>([])
+  const trailIdRef = useRef(0)
+  const lastTrailRef = useRef(0)
+
+  const spawn = useCallback((x: number, y: number, vx: number, vy: number) => {
+    const speed = Math.hypot(vx, vy)
+    if (speed < 5) return
+    const now = performance.now()
+    if (now - lastTrailRef.current < TRAIL_THROTTLE_MS) return
+    lastTrailRef.current = now
+
+    const inv = 1 / (speed || 1)
+    const id = trailIdRef.current++
+    const spread = 1 + Math.random() * 1.3
+    const droplet: TrailDroplet = {
+      id,
+      x,
+      y,
+      dx: -vx * inv * 13 * spread,
+      dy: -vy * inv * 13 * spread - 4,
+      size: 2.5 + Math.random() * 3.5,
+      life: 0.45 + Math.random() * 0.4,
+    }
+    setTrail((prev) => {
+      const next = [...prev, droplet]
+      return next.length > MAX_TRAIL ? next.slice(next.length - MAX_TRAIL) : next
+    })
+  }, [])
+
+  useEffect(() => {
+    spawnRef.current = spawn
+    return () => {
+      spawnRef.current = null
+    }
+  }, [spawn, spawnRef])
+
+  return (
+    <>
+      {trail.map((d) => (
+        <motion.span
+          key={d.id}
+          initial={{ x: d.x, y: d.y, opacity: 0.9, scale: 1 }}
+          animate={{ x: d.x + d.dx, y: d.y + d.dy, opacity: 0, scale: 0.1 }}
+          transition={{ duration: d.life, ease: 'easeOut' }}
+          onAnimationComplete={() => setTrail((prev) => prev.filter((p) => p.id !== d.id))}
+          className="pointer-events-none fixed left-0 top-0 z-[9998]"
+        >
+          <span
+            className="block -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ width: d.size, height: d.size, backgroundImage: BUBBLE_BG }}
+          />
+        </motion.span>
+      ))}
+    </>
+  )
+})
 
 /**
  * One extra bubble per extra finger. Kept as its own component so the
@@ -132,8 +221,14 @@ export default function GlobalCursor() {
   const primaryTouchIdRef = useRef<number | null>(null)
   const touchPointersRef = useRef(new Map<number, Vec>())
   const wheelTimer = useRef<number>(0)
+  const trailSpawnRef = useRef<SpawnFn | null>(null)
 
   const getPrimary = useCallback(() => primaryRef.current, [])
+
+  // stable bridge: forwards the primary bubble's frames to the isolated TrailLayer
+  const handlePrimaryFrame = useCallback((x: number, y: number, vx: number, vy: number) => {
+    trailSpawnRef.current?.(x, y, vx, vy)
+  }, [])
 
   useEffect(() => {
     const updateMode = (e: PointerEvent) => {
@@ -222,7 +317,7 @@ export default function GlobalCursor() {
       transition={{ duration: 0.2 }}
     >
       {/* primary bubble — follows the mouse / trackpad / first finger */}
-      <WaterBubble getTarget={getPrimary} phase={0}>
+      <WaterBubble getTarget={getPrimary} phase={0} onFrame={handlePrimaryFrame}>
         <motion.div
           animate={{
             width: mode === 'photo' ? 96 : mode === 'link' ? 40 : 15,
@@ -277,6 +372,9 @@ export default function GlobalCursor() {
       {extraIds.map((id) => (
         <ExtraBubble key={id} id={id} pointers={touchPointersRef} />
       ))}
+
+      {/* evaporating water-trail droplets flung off the primary bubble */}
+      <TrailLayer spawnRef={trailSpawnRef} />
 
       {/* droplet that appears while two-finger scrolling on a trackpad */}
       <AnimatePresence>
