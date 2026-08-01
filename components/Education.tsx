@@ -46,7 +46,7 @@ export default function Education() {
                   </span>
 
                   {/* card */}
-                  <div className={`pl-12 sm:pl-0 ${left ? 'sm:pr-14' : 'sm:col-start-2 sm:pl-14'}`}>
+                  <div className={left ? 'pl-12 sm:col-start-1 sm:pr-14 sm:pl-0' : 'pl-12 sm:col-start-2 sm:pl-14'}>
                     <motion.div
                       initial={{ opacity: 0, y: 28, x: left ? -20 : 20 }}
                       whileInView={{ opacity: 1, y: 0, x: 0 }}

@@ -12,10 +12,6 @@ export const site = {
   github: 'https://github.com/SankalpPandey-56',
   linkedin: 'https://www.linkedin.com/in/sankalp-pandey-20361b41a/',
   instagram: 'https://www.instagram.com/uhm.sankalp/',
-  // Drop your showreel into /public (e.g. /public/showreel.mp4) and set this to
-  // its path (e.g. "/showreel.mp4") to replace the laptop-screen placeholder
-  // with your real video. The video plays automatically, muted & looping.
-  videoUrl: '',
 }
 
 export type Repo = {

@@ -24,12 +24,12 @@ function Navbar() {
         <a href="#top" className="font-display text-sm font-bold tracking-[0.25em] text-white">
           {site.brand}
         </a>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-neutral-400 transition-colors hover:text-white"
+              className="text-xs font-medium text-neutral-400 transition-colors hover:text-white sm:text-sm"
             >
               {l.label}
             </a>
