@@ -50,7 +50,7 @@ export default function Education() {
                     <motion.div
                       initial={{ opacity: 0, y: 28, x: left ? -20 : 20 }}
                       whileInView={{ opacity: 1, y: 0, x: 0 }}
-                      viewport={{ once: true, margin: '-80px' }}
+                      viewport={{ once: true, amount: 0.05 }}
                       transition={{ duration: 0.6, ease: [0.21, 0.65, 0.32, 0.99] }}
                       className="group rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-transparent p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_20px_70px_-24px_rgba(79,124,255,0.4)]"
                     >
